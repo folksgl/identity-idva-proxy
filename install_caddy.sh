@@ -1,9 +1,21 @@
-#!/bin/bash
-# Install 'xcaddy' to build caddy binary with forwardproxy plugin.
-# Download the xcaddy tar file, sending it to stdout and piping to tar for
-# extraction. Results in 'xcaddy' binary in the current directory.
-xcaddy_version=$(cat XCADDY_VERSION)
-caddy_version=$(cat CADDY_VERSION)
-wget --no-verbose https://github.com/caddyserver/xcaddy/releases/download/v"$xcaddy_version"/xcaddy_"$xcaddy_version"_linux_amd64.tar.gz -O - | tar -xz xcaddy
-./xcaddy build v"$caddy_version" --with github.com/caddyserver/forwardproxy@caddy2
-rm xcaddy
+#!/bin/bash -e
+
+# To update caddy, simply update the version number in the CADDY_VERSION file
+version_num=$(cat CADDY_VERSION)
+download_url="https://github.com/18F/identity-idva-proxy-build/releases/download/v$version_num"
+archive_name="caddy-forwardproxy-$version_num-linux-amd64.tar.gz"
+shasum_filename="sha256sums.txt"
+
+archive_url="$download_url/$archive_name"
+shasum_url="$download_url/$shasum_filename"
+
+# Download the archive and shasum file
+wget --quiet "$archive_url"
+wget --quiet "$shasum_url"
+
+# Compare sha256sum
+sha256sum --check --ignore-missing --status "$shasum_filename"
+
+# Extract and clean up
+tar -xzf "$archive_name"
+rm "$archive_name" "$shasum_filename"
